@@ -33,7 +33,7 @@ images:
 # Cloud Buildトリガーで設定する変数
 substitutions:
   _SERVICE_NAME: "first-cr-app" # あなたのサービス名
-  _REGION: "asia-northeast1" # あなたのリージョン
+  _REGION: "us-central1"
   _PROJECT_ID: "perfect-obelisk-413715" # あなたのプロジェクトID
   _REVISION_ID: $REVISION_ID # これは変更しないでください
   _APP_KEY: "" # Cloud Buildトリガーの設定画面で設定します
