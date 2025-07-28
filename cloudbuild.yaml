@@ -1,0 +1,39 @@
+steps:
+  # 1. コンテナイメージをビルドする
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_REVISION_ID}",
+        ".",
+      ]
+
+  # 2. ビルドしたイメージをArtifact Registryにプッシュする
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_REVISION_ID}"]
+
+  # 3. Cloud Runにデプロイする
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      - "run"
+      - "deploy"
+      - "${_SERVICE_NAME}"
+      - "--image=gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_REVISION_ID}"
+      - "--region=${_REGION}"
+      - "--platform=managed"
+      - "--quiet"
+      - "--set-env-vars=APP_KEY=${_APP_KEY},LOG_CHANNEL=stderr,SESSION_DRIVER=cookie,DB_CONNECTION=sqlite"
+
+# ビルドしたイメージを保存
+images:
+  - "gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_REVISION_ID}"
+
+# Cloud Buildトリガーで設定する変数
+substitutions:
+  _SERVICE_NAME: "first-cr-app" # あなたのサービス名
+  _REGION: "asia-northeast1" # あなたのリージョン
+  _PROJECT_ID: "perfect-obelisk-413715" # あなたのプロジェクトID
+  _REVISION_ID: $REVISION_ID # これは変更しないでください
+  _APP_KEY: "" # Cloud Buildトリガーの設定画面で設定します
