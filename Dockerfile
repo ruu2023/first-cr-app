@@ -16,12 +16,10 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# --- ▼▼▼ 命令の順序を最適化 ▼▼▼ ---
-
 # 1. 依存関係ファイルのみを先にコピー
 COPY composer.json composer.lock ./
 
-# 2. 依存パッケージをインストール (この層がキャッシュされやすくなる)
+# 2. 依存パッケージをインストール
 RUN composer install --no-interaction --no-plugins --no-scripts --no-dev --prefer-dist --optimize-autoloader
 
 # 3. アプリケーションの全ファイルをコピー
@@ -39,4 +37,13 @@ RUN php artisan view:clear
 RUN chown -R www-data:www-data .
 RUN chmod -R 775 storage bootstrap/cache
 
+# --- ▼▼▼ デバッグコマンドを追加 ▼▼▼ ---
+RUN echo "--- 1. Apache ポート設定の確認 ---" && \
+  cat /etc/apache2/ports.conf && \
+  echo "--- 2. Apache サイト設定の確認 ---" && \
+  cat /etc/apache2/sites-available/000-default.conf && \
+  echo "--- 3. /var/www/html のパーミッション確認 ---" && \
+  ls -la && \
+  echo "--- 4. /var/www/html/public のパーミッション確認 ---" && \
+  ls -la public
 # --- ▲▲▲ ここまで ▲▲▲ ---
