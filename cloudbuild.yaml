@@ -27,4 +27,19 @@ steps:
       - "--set-env-vars=APP_KEY=${_APP_KEY},LOG_CHANNEL=stderr,SESSION_DRIVER=cookie,DB_CONNECTION=sqlite"
       - "--allow-unauthenticated" # <-- この行を追加！
 
-# ... (images, substitutions, options) ...
+# ビルドしたイメージを保存
+images:
+  - "gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_REVISION_ID}"
+
+# Cloud Buildトリガーで設定する変数
+substitutions:
+  _SERVICE_NAME: "first-cr-app" # あなたのサービス名
+  _REGION: "us-central1"
+  _PROJECT_ID: "perfect-obelisk-413715" # あなたのプロジェクトID
+  _REVISION_ID: $REVISION_ID # これは変更しないでください
+  _APP_KEY: "" # Cloud Buildトリガーの設定画面で設定します
+
+# --- ▼▼▼ ここを追加 ▼▼▼ ---
+options:
+  logging: CLOUD_LOGGING_ONLY
+# --- ▲▲▲ ここまで追加 ▲▲▲ ---

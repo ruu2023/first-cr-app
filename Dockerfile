@@ -36,3 +36,14 @@ RUN php artisan view:clear
 # 6. 所有権とパーミッションを最後に設定
 RUN chown -R www-data:www-data .
 RUN chmod -R 775 storage bootstrap/cache
+
+# --- ▼▼▼ デバッグコマンドを追加 ▼▼▼ ---
+RUN echo "--- 1. Apache ポート設定の確認 ---" && \
+  cat /etc/apache2/ports.conf && \
+  echo "--- 2. Apache サイト設定の確認 ---" && \
+  cat /etc/apache2/sites-available/000-default.conf && \
+  echo "--- 3. /var/www/html のパーミッション確認 ---" && \
+  ls -la && \
+  echo "--- 4. /var/www/html/public のパーミッション確認 ---" && \
+  ls -la public
+# --- ▲▲▲ ここまで ▲▲▲ ---
