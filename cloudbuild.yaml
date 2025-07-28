@@ -37,3 +37,8 @@ substitutions:
   _PROJECT_ID: "perfect-obelisk-413715" # あなたのプロジェクトID
   _REVISION_ID: $REVISION_ID # これは変更しないでください
   _APP_KEY: "" # Cloud Buildトリガーの設定画面で設定します
+
+# --- ▼▼▼ ここを追加 ▼▼▼ ---
+options:
+  logging: CLOUD_LOGGING_ONLY
+# --- ▲▲▲ ここまで追加 ▲▲▲ ---
