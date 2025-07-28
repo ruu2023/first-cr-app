@@ -1,40 +1,42 @@
 # ベースとなるイメージを指定
 FROM php:8.2-apache
 
-# 必要なライブラリ(git, unzip)とPHP拡張機能(zip, pdo_mysql)をインストール
+# 必要なライブラリとPHP拡張機能をインストール
 RUN apt-get update && apt-get install -y \
-  git \
-  unzip \
-  libzip-dev \
+  git unzip libzip-dev \
   && docker-php-ext-install -j$(nproc) zip pdo_mysql
 
-# Apacheがリッスンするグローバルなポートを8080に変更
-RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf
-
-# 作成したApache設定ファイルをコンテナにコピーする
+# Apache設定
 COPY ./docker/000-default.conf /etc/apache2/sites-available/000-default.conf
-
-# mod_rewriteを有効化
+RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf
 RUN a2enmod rewrite
 
 # Composerをインストール
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# アプリケーションの依存パッケージをインストール
 WORKDIR /var/www/html
-COPY . .
+
+# --- ▼▼▼ 命令の順序を最適化 ▼▼▼ ---
+
+# 1. 依存関係ファイルのみを先にコピー
+COPY composer.json composer.lock ./
+
+# 2. 依存パッケージをインストール (この層がキャッシュされやすくなる)
 RUN composer install --no-interaction --no-plugins --no-scripts --no-dev --prefer-dist --optimize-autoloader
 
-# --- ▼▼▼ ここが重要 ▼▼▼ ---
-# 開発環境のキャッシュを物理的に削除する
+# 3. アプリケーションの全ファイルをコピー
+COPY . .
+
+# 4. 開発環境のキャッシュを物理的に削除
 RUN rm -f bootstrap/cache/*.php
 
-# キャッシュクリアコマンドを実行する (念のため)
+# 5. キャッシュクリアコマンドを実行
 RUN php artisan config:clear
 RUN php artisan route:clear
 RUN php artisan view:clear
-# --- ▲▲▲ ここまで ▲▲▲ ---
 
-# ファイル所有権とパーミッションを最後に設定する
-RUN chown -R www-data:www-data /var/www/html
-RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# 6. 所有権とパーミッションを最後に設定
+RUN chown -R www-data:www-data .
+RUN chmod -R 775 storage bootstrap/cache
+
+# --- ▲▲▲ ここまで ▲▲▲ ---
